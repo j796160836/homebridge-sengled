@@ -1,0 +1,40 @@
+{
+  "name": "homebridge-sengled",
+  "version": "0.0.1",
+  "description": "A unoffical Homebridge plugin for controlling sengled accessories.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/j796160836/homebridge-sengled.git"
+  },
+  "bugs": {
+    "url": "https://github.com/j796160836/homebridge-sengled/issues"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=6.9.2",
+    "homebridge": ">=0.2.0"
+  },
+  "dependencies": {
+    "axios": "^0.17.1",
+    "axios-cookiejar-support": "^0.3.4",
+    "moment": "^2.20.1"
+  },
+  "keywords": [
+    "siri",
+    "sengled",
+    "homebridge",
+    "homebridge-plugin",
+    "ios",
+    "homekit"
+  ],
+  "author": "Johnny Sung",
+  "license": "MIT",
+  "homepage": "https://github.com/j796160836/homebridge-sengled#readme",
+  "directories": {
+    "lib": "lib"
+  }
+}
