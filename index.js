@@ -100,6 +100,8 @@ SengledHubPlatform.prototype.deviceDiscovery = function() {
 SengledHubPlatform.prototype.addAccessory = function(data) {
     if (!this.accessories[data.id]) {
         let uuid = UUIDGen.generate(data.id);
+        // 5 == Accessory.Categories.LIGHTBULB
+        // 8 == Accessory.Categories.SWITCH
         var newAccessory = new Accessory(data.id, uuid, 8);
 
         newAccessory.context.name = data.name;
@@ -165,7 +167,7 @@ SengledHubPlatform.prototype.getInitState = function(accessory, data) {
     accessory.context.manufacturer = "Sengled";
     info.setCharacteristic(Characteristic.Manufacturer, accessory.context.manufacturer);
 
-    accessory.context.model = "Sengled Hub";
+    accessory.context.model = (data.productCode != null) ? data.productCode : "Sengled Hub";
     info.setCharacteristic(Characteristic.Model, accessory.context.model);
 
     info.setCharacteristic(Characteristic.SerialNumber, accessory.context.id);
@@ -177,21 +179,9 @@ SengledHubPlatform.prototype.getInitState = function(accessory, data) {
 
 SengledHubPlatform.prototype.setPowerState = function(thisPlug, powerState, callback) {
     let that = this;
-    if (this.debug) this.log("Sending device status change");
-
+    if (this.debug) this.log("Sending device: " + thisPlug.id + " status change to " + powerState);
     return this.client.login(this.username, this.password).then( () => {
-        return this.client.getDevices();
-    }).then( devices => {
-        return devices.find( (device) => { return device.name.includes(thisPlug.name); });
-    }).then( (device) => {
-        thisPlug.status = device.status;
-        if (device.status == 'open' && powerState == false) {
-            return this.client.turnOff(device.id);
-        }
-
-        if (device.status == 'break' && powerState == true) {
-            return this.client.turnOn(device.id);
-        }
+        return this.client.deviceSetOnOff(thisPlug.id, powerState);
     }).then( () => {
         callback();
     }).catch( (err) => {
@@ -207,7 +197,7 @@ SengledHubPlatform.prototype.getPowerState = function(thisPlug, callback) {
         return this.client.login(this.username, this.password).then( () => {
             return this.client.getDevices();
         }).then( devices => {
-            return devices.find( (device) => { return device.name.includes(thisPlug.name); });
+            return devices.find( (device) => { return device.id.includes(thisPlug.id); });
         }).then( (device) => {
             if (typeof device === 'undefined') {
                 if (this.debug) this.log("Removing undefined device", thisPlug.name);
@@ -215,7 +205,7 @@ SengledHubPlatform.prototype.getPowerState = function(thisPlug, callback) {
             } else {
                 thisPlug.status = device.status;
                 if (this.debug) this.log("getPowerState complete");
-                callback(null, device.status == 'open');
+                callback(null, device.status);
             }
         });
     } else {
