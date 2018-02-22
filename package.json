@@ -1,6 +1,6 @@
 {
   "name": "homebridge-sengled",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A unoffical Homebridge plugin for controlling sengled accessories.",
   "main": "index.js",
   "scripts": {
