@@ -13,13 +13,6 @@
                 "default": "SengledHub",
                 "description": "The name that will appear in your homebridge log."
             },
-            "platform": {
-                "title": "Platform",
-                "type": "string",
-                "default": "SengledHub",
-                "required": true,
-                "description": "This must be SengledHub."
-            },
             "username": {
                 "title": "Username",
                 "type": "string",
