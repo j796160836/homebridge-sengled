@@ -21,15 +21,17 @@ function SengledHubPlatform(log, config, api) {
 	this.accessories = {};
 	this.cache_timeout = 10; // seconds
 	this.debug = config['debug'] || false;
+	this.info = config['info'] || true;
 	this.username = config['username'];
 	this.password = config['password'];
+	this.cacheDuration = config['cacheDuration'] || 1000 * 15;
 
 	if (api) {
 		this.api = api;
 		this.api.on('didFinishLaunching', this.didFinishLaunching.bind(this));
 	}
 
-	this.client = new ElementHomeClient(log, this.debug);
+	this.client = new ElementHomeClient(log, this.debug, this.info, this.cacheDuration);
 }
 
 SengledHubPlatform.prototype.configureAccessory = function(accessory) {
@@ -65,14 +67,14 @@ SengledHubPlatform.prototype.didFinishLaunching = function() {
 	// for (let index in me.accessories) {
 	// 	me.removeAccessory(me.accessories[index]);
 	// }
-	
+
 	this.deviceDiscovery();
 	setInterval(me.deviceDiscovery.bind(me), this.cache_timeout * 6000);
 };
 
 SengledHubPlatform.prototype.deviceDiscovery = function() {
 	let me = this;
-	if (me.debug) me.log("deviceDiscovery invoked");
+	if (me.debug) me.log("+++ deviceDiscovery invoked");
 
 	this.client.login(this.username, this.password).then(() => {
 		return this.client.getDevices();
@@ -125,7 +127,7 @@ SengledHubPlatform.prototype.addAccessory = function(data) {
 		// 8 == Accessory.Categories.SWITCH
 		var newAccessory = new Accessory(data.id, uuid, 8);
 		newAccessory.name = data.name
-		
+
 		newAccessory.context.name = data.name;
 		newAccessory.context.id = data.id;
 		newAccessory.context.cb = null;
@@ -137,7 +139,7 @@ SengledHubPlatform.prototype.addAccessory = function(data) {
 		lightbulbService.displayName = data.name;
 
 		var bringtnessCharacterstics = new Characteristic.Brightness(UUIDGen.generate(data.id + "1"));
-		lightbulbService.addCharacteristic(bringtnessCharacterstics);		
+		lightbulbService.addCharacteristic(bringtnessCharacterstics);
 		var colorTemperatureCharacterstics = new Characteristic.ColorTemperature(UUIDGen.generate(data.id + "1"));
 		lightbulbService.addCharacteristic(colorTemperatureCharacterstics);
 		newAccessory.addService(lightbulbService, data.name);
@@ -205,7 +207,7 @@ SengledHubPlatform.prototype.setService = function(accessory) {
 
 SengledHubPlatform.prototype.getInitState = function(accessory, data) {
 	let me = this;
-	if (me.debug) me.log("getInitState invoked: " + accessory + " " + data);
+	if (me.debug) me.log("+++ getInitState invoked: " + accessory + " " + data);
 
 	let info = accessory.getService(Service.AccessoryInformation);
 
@@ -222,7 +224,7 @@ SengledHubPlatform.prototype.getInitState = function(accessory, data) {
 
 SengledHubPlatform.prototype.getState = function(accessory) {
 	let me = this;
-	if (me.debug) me.log("getState invoked: " + accessory);
+	if (me.debug) me.log("+++ getState invoked: " + accessory);
 
 	accessory.getService(Service.Lightbulb)
 		.getCharacteristic(Characteristic.On)
@@ -253,10 +255,10 @@ SengledHubPlatform.prototype.setPowerState = function(thisPlug, powerState, call
 
 SengledHubPlatform.prototype.getPowerState = function(thisPlug, callback) {
 	let me = this;
-	if (this.debug) this.log("Getting device: " + thisPlug.name + " status");
+	if (this.debug) this.log("Getting getPowerState: " + thisPlug.name);
 	if (this.accessories[thisPlug.id]) {
 		return this.client.login(this.username, this.password).then(() => {
-			return this.client.getDevices();
+			return this.client.getDevices(me.characteristicApiUpdate);
 		}).then(devices => {
 			return devices.find((device) => {
 				return device.id.includes(thisPlug.id);
@@ -297,17 +299,15 @@ SengledHubPlatform.prototype.setBrightness = function(thisPlug, brightness, call
 
 SengledHubPlatform.prototype.getBrightness = function(thisPlug, callback) {
 	let me = this;
-	if (this.debug) this.log("Getting device: " + thisPlug.id + " status");
+	if (this.debug) this.log("Getting getBrightness: " + thisPlug.id);
 	if (this.accessories[thisPlug.id]) {
 		return this.client.login(this.username, this.password).then(() => {
-			return this.client.getDevices();
+			return this.client.getDevices(me.characteristicApiUpdate);
 		}).then(devices => {
 			return devices.find((device) => {
 				return device.id.includes(thisPlug.id);
 			});
 		}).then((device) => {
-			this.log("+++ device");
-			this.log(device);
 			if (typeof device === 'undefined') {
 				if (this.debug) this.log("Removing undefined device", thisPlug.name);
 				this.removeAccessory(thisPlug)
@@ -327,7 +327,7 @@ SengledHubPlatform.prototype.setColorTemperature = function(thisPlug, colortempe
 	let me = this;
 	if (me.debug) me.log("++++ setColortemperature: " + thisPlug.name + " status colortemperature to " + colortemperature);
 	colortemperature = colortemperature || 0;
-	colortemperature = Math.min(Math.round(numberMap(colortemperature, 140, 400, 0, 255)),255);
+	colortemperature = Math.min(Math.round(numberMap(colortemperature, 140, 400, 0, 255)), 255);
 	if (me.debug) me.log("++++ Sending device: " + thisPlug.name + " status colortemperature to " + colortemperature);
 
 	return this.client.login(this.username, this.password).then(() => {
@@ -342,13 +342,13 @@ SengledHubPlatform.prototype.setColorTemperature = function(thisPlug, colortempe
 
 SengledHubPlatform.prototype.getColorTemperature = function(thisPlug, callback) {
 	let me = this;
-	if (this.debug) this.log("Getting device: " + thisPlug.id + " colortemperature");
+	if (this.debug) this.log("Getting getColorTemperature: " + thisPlug.id);
 	if (this.accessories[thisPlug.id]) {
 		return this.client.login(this.username, this.password).then(() => {
 			return this.client.getDevices();
 		}).then(devices => {
 			return devices.find((device) => {
-				return device.id.includes(thisPlug.id);
+				return this.client.getDevices(me.characteristicApiUpdate);
 			});
 		}).then((device) => {
 			if (typeof device === 'undefined') {
