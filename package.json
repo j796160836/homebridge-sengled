@@ -1,6 +1,6 @@
 {
   "name": "homebridge-sengled",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A unoffical Homebridge plugin for controlling sengled accessories.",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,8 @@
   "dependencies": {
     "axios": "^0.18.1",
     "axios-cookiejar-support": "^0.3.4",
-    "moment": "^2.20.1"
+    "moment": "^2.20.1",
+    "semaphore": "^1.1.0"
   },
   "keywords": [
     "siri",
