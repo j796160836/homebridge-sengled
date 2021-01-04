@@ -19,7 +19,7 @@
     "homebridge": ">=0.2.0"
   },
   "dependencies": {
-    "axios": "^0.18.1",
+    "axios": "^0.21.1",
     "axios-cookiejar-support": "^0.3.4",
     "moment": "^2.20.1"
   },
