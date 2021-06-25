@@ -1,4 +1,10 @@
 # homebridge-sengled (Beta)
+
+> **Unmaintained project**  
+> Because I haven't any Sengled devices now (has sold.)  
+> Also I'm not the employee of Sengled. I can't support newer Sengled's devices.  
+> Thanks for everybody 🙇‍♂️
+
 An unoffical [Homebridge](https://github.com/nfarina/homebridge) platform plugin for Sengled accessories.
 
 This plugin uses the existing Sengled Element Home app infrastructure to allow you to control your Sengled accessories.
